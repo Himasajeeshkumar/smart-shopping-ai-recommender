@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request
 import pickle
-import pandas as pd
+import random
 
 app = Flask(__name__)
 
-# Load precomputed data
-df = pickle.load(open('df.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+# Load data
+data = pickle.load(open('df.pkl', 'rb'))
+customers = data["customers"]
+products = data["products"]
 
 @app.route('/')
 def home():
@@ -14,20 +15,14 @@ def home():
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
-    customer_id = request.form['customer_id'].strip().lower()
+    customer_id = request.form['customer_id'].strip()
+    
+    if customer_id not in customers['customer_id'].values:
+        return render_template('index.html', error="❌ Customer ID not found!")
 
-    # Match customer ID in lowercase
-    matched = df[df['customer_id'].str.lower() == customer_id]
-
-    if matched.empty:
-        return render_template('index.html', error="❌ Customer ID not found. Please try again.")
-
-    index = matched.index[0]
-    distances = list(enumerate(similarity[index]))
-    sorted_scores = sorted(distances, key=lambda x: x[1], reverse=True)[1:6]
-    recommended_products = [df.iloc[i[0]].product_name for i in sorted_scores]
-
-    return render_template('index.html', recommendations=recommended_products)
+    # Recommend 3 random products
+    recommended = random.sample(list(products['product_name']), 3)
+    return render_template('index.html', recommendations=recommended)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
