@@ -1,18 +1,16 @@
 import pandas as pd
 import pickle
 
-# Load the files
-customers = pd.read_csv("customer_data_collection.csv")
-products = pd.read_csv("product_recommendation_data.csv")
+# Load your original CSVs
+customers = pd.read_csv("customer_data_collection.csv")  # should have CustomerID column
+products = pd.read_csv("product_recommendation_data.csv")  # should have Product column
 
-# We’ll just store both in a dictionary for easy access
+# Save them in a dictionary
 data = {
     "customers": customers,
     "products": products
 }
 
-# Save as a pickle
+# Dump to pickle file
 with open("df.pkl", "wb") as f:
     pickle.dump(data, f)
-
-print("✅ Pickle file created as df.pkl")
