@@ -1,16 +1,11 @@
 from flask import Flask, render_template, request
 import pickle
-import os
 import pandas as pd
 
 app = Flask(__name__)
 
-# Load the pickled data
-with open("df.pkl", "rb") as f:
-    data = pickle.load(f)
-
-customers = data["customers"]
-products = data["products"]
+# Load the preprocessed DataFrame
+df = pickle.load(open("df.pkl", "rb"))
 
 @app.route("/")
 def home():
@@ -18,14 +13,14 @@ def home():
 
 @app.route("/recommend", methods=["POST"])
 def recommend():
-    customer_id = request.form["customer_id"]
-    if customer_id in customers["CustomerID"].values:
-        recommended = products["Product"].sample(5).tolist()
-        return render_template("index.html", recommendations=recommended)
+    customer_id = request.form["customer_id"].strip()
+    
+    if customer_id in df["Customer_ID"].values:
+        recommended_product = df[df["Customer_ID"] == customer_id]["Recommended_Product"].values[0]
+        return render_template("index.html", recommendations=[recommended_product])
     else:
-        error = "❌ Customer ID not found!"
-        return render_template("index.html", error=error)
+        return render_template("index.html", error="Customer ID not found. Please try again.")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Use Render's assigned port
-    app.run(host="0.0.0.0", port=port)
+    # important: host=0.0.0.0 for deployment (like Render, Heroku, etc.)
+    app.run(debug=False, host="0.0.0.0", port=10000)
